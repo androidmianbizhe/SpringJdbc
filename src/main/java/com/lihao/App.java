@@ -8,6 +8,9 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Date;
 import java.util.List;
@@ -24,12 +27,30 @@ public class App
     {
         context = new ClassPathXmlApplicationContext("classpath:SpringBean.xml");
 
-        StudentJDBCTemplate jdbcTemplate = (StudentJDBCTemplate) context.getBean("studentJdbcTemplate");
+        final StudentJDBCTemplate jdbcTemplate = (StudentJDBCTemplate) context.getBean("studentJdbcTemplate");
 
-        //query
-        Student student = jdbcTemplate.getStudent(6L);
-        System.out.println("查询一个");
-        System.out.println(student);
+        TransactionTemplate transactionTemplate = (TransactionTemplate) context.getBean("transactionTemplate");
+
+        transactionTemplate.execute(new TransactionCallback<Object>() {
+            @Override
+            public Object doInTransaction(TransactionStatus transactionStatus) {
+
+                Student s = new Student();
+                s.setName("libai");
+                s.setGender("男");
+                s.setDistance(12.4);
+                s.setAge(12);
+                s.setClass_id(3L);
+                int count = jdbcTemplate.create(s);
+                int deleteStu = jdbcTemplate.deleteStu(5L);
+                return null;
+            }
+        });
+        // todo
+//        Student student = jdbcTemplate.getStudent(6L);
+//
+//        System.out.println("查询一个");
+//        System.out.println(student);
 
         //create
 //        Student s = new Student();
@@ -58,8 +79,8 @@ public class App
 //        System.out.println("更新" + update);
 
         //delete
-        int deleteStu = jdbcTemplate.deleteStu(5L);
-        System.out.println("删除" + deleteStu);
+//        int deleteStu = jdbcTemplate.deleteStu(5L);
+//        System.out.println("删除" + deleteStu);
 
 //        //add
 //        String addsql = "insert into t_user(`name`, age, birth) value(?, ?, ?)";
